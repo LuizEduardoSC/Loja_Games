@@ -52,8 +52,8 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtoRepository.findAllByTituloContainingIgnoreCase(nome));
 	}
 	
-	@PostMapping
-	public ResponseEntity<Produto> post(@Valid @RequestBody Produto produto) {
+	/*@PostMapping	
+	public ResponseEntity<Produto> post(@RequestBody Produto produto) {
 
 		if (produtoRepository.existsById(produto.getNome()))
 			return ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto));
@@ -61,19 +61,35 @@ public class ProdutoController {
 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Produto já existe!", null);
 
 		// INSERT INTO tb_postagens (titulo, texto) VALUES (?, ?);
+	}*/
+	
+	@PostMapping
+	public ResponseEntity<Produto> post(@Valid @RequestBody Produto produto) {
+		if (categoriaRepository.existsById(produto.getCategoria().getId()))
+			return ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto));
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	}
 	
-	@PutMapping
+	/*@PutMapping
 	public ResponseEntity<Produto> put(@Valid @RequestBody Produto produto) {
 
 		if (produtoRepository.existsById(produto.getId())) {
+			throw new Exception(HttpStatus.NOT_FOUND);				
 
-			if (categoriaRepository.existsById(produto.getNome().getId()))
-				return ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto));
-
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tema não existe!", null);
 		}
-		
+		else
+			return ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto));
+	}*/
+	
+	@PutMapping
+	public ResponseEntity<Produto> put(@RequestBody Produto produto) {
+		if (produtoRepository.existsById(produto.getId())) {
+
+			if (categoriaRepository.existsById(produto.getCategoria().getId()))
+				return ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto));
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 	
