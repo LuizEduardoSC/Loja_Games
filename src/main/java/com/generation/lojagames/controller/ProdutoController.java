@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.lojagames.model.Produto;
-import com.generation.lojagames.repository.CategoriaRepository;
 import com.generation.lojagames.repository.ProdutoRepository;
 
 import jakarta.validation.Valid;
@@ -31,14 +30,16 @@ import jakarta.validation.Valid;
 public class ProdutoController {
 	
 	@Autowired
-	private ProdutoRepository produtoRepository;
+	private ProdutoRepository produtoRepository; // objeto da interface repository
 	
-	@Autowired
-	private CategoriaRepository categoriaRepository;
+	//@Autowired
+	//private CategoriaRepository categoriaRepository;
 	
 	@GetMapping
 	public ResponseEntity<List<Produto>> getAll() {
 		return ResponseEntity.ok(produtoRepository.findAll());
+		
+		// SELECT * FROM tb_postagens;
 	}
 	
 	@GetMapping("/{id}")
@@ -49,59 +50,33 @@ public class ProdutoController {
 	
 	@GetMapping("/nome/{nome}")
 	public ResponseEntity<List<Produto>> getByNome(@RequestParam String nome) {
-		return ResponseEntity.ok(produtoRepository.findAllByTituloContainingIgnoreCase(nome));
+		return ResponseEntity.ok(produtoRepository.findAllByNomeContainingIgnoreCase(nome));
 	}
 	
-	/*@PostMapping	
-	public ResponseEntity<Produto> post(@RequestBody Produto produto) {
-
-		if (produtoRepository.existsById(produto.getNome()))
-			return ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto));
-
-		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Produto já existe!", null);
-
-		// INSERT INTO tb_postagens (titulo, texto) VALUES (?, ?);
-	}*/
 	
 	@PostMapping
-	public ResponseEntity<Produto> post(@Valid @RequestBody Produto produto) {
-		if (categoriaRepository.existsById(produto.getCategoria().getId()))
-			return ResponseEntity.status(HttpStatus.CREATED).body(produtoRepository.save(produto));
-		
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	public ResponseEntity<Produto> post(@Valid @RequestBody Produto produto){
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(produtoRepository.save(produto));
 	}
 	
-	/*@PutMapping
-	public ResponseEntity<Produto> put(@Valid @RequestBody Produto produto) {
-
-		if (produtoRepository.existsById(produto.getId())) {
-			throw new Exception(HttpStatus.NOT_FOUND);				
-
-		}
-		else
-			return ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto));
-	}*/
 	
 	@PutMapping
-	public ResponseEntity<Produto> put(@RequestBody Produto produto) {
-		if (produtoRepository.existsById(produto.getId())) {
-
-			if (categoriaRepository.existsById(produto.getCategoria().getId()))
-				return ResponseEntity.status(HttpStatus.OK).body(produtoRepository.save(produto));
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+	public ResponseEntity<Produto>put(@Valid @RequestBody Produto produto) {
+		return produtoRepository.findById(produto.getId())
+				.map(resposta -> ResponseEntity.status(HttpStatus.OK)
+						.body(produtoRepository.save(produto)))
+				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 	}
 	
-	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@DeleteMapping("/{id}")
 	public void delete(@PathVariable Long id) {
-		Optional<Produto> produto = produtoRepository
-				.findById(id); /* Criar a Optional e procurar pela id digitada */
-		if (produto.isEmpty()) /* Verificar se o valor digitado existe */
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND); /* Se não existir, retornar NOT FOUND */
-		else
-			produtoRepository.deleteById(id); /* Se for encontrado, deletar */
-
+		Optional<Produto> produto = produtoRepository.findById(id);
+		
+		if(produto.isEmpty())
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		
+		produtoRepository.deleteById(id);
 	}
 }
